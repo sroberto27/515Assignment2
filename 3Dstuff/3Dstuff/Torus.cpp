@@ -1,7 +1,13 @@
+#include <GL\glew.h>
+#include <GLFW\glfw3.h>
+#include <SOIL2\soil2.h>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <glm\gtc\type_ptr.hpp> // glm::value_ptr
+#include <glm\gtc\matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <cmath>
 #include <vector>
-#include <iostream>
-#include <glm\gtc\matrix_transform.hpp>
 #include "Torus.h"
 using namespace std;
 
@@ -56,7 +62,7 @@ void Torus::init() {
 			vertices[ring*(prec + 1) + i] = glm::vec3(rMat * glm::vec4(vertices[i], 1.0f));
 
 			texCoords[ring*(prec + 1) + i] = glm::vec2((float)ring*2.0f / (float)prec, texCoords[i].t);
-			if (texCoords[ring*(prec + 1) + i].s > 1.0) texCoords[ring*(prec+1)+i].s -= 1.0f;
+			//if (texCoords[ring*(prec + 1) + i].s > 1.0) texCoords[ring*(prec+1)+i].s -= 1.0f; // deleted and added someting at end of inint
 
 			rMat = glm::rotate(glm::mat4(1.0f), amt, glm::vec3(0.0f, 1.0f, 0.0f));
 			sTangents[ring*(prec + 1) + i] = glm::vec3(rMat * glm::vec4(sTangents[i], 1.0f));
@@ -71,14 +77,15 @@ void Torus::init() {
 	// calculate triangle indices
 	for (int ring = 0; ring < prec; ring++) {
 		for (int i = 0; i < prec; i++) {
-			indices[((ring*prec + i) * 2) * 3 + 0] = ring*(prec + 1) + i;
+			indices[((ring*prec + i) * 2) * 3 + 0] = ring * (prec + 1) + i;
 			indices[((ring*prec + i) * 2) * 3 + 1] = (ring + 1)*(prec + 1) + i;
-			indices[((ring*prec + i) * 2) * 3 + 2] = ring*(prec + 1) + i + 1;
-			indices[((ring*prec + i) * 2 + 1) * 3 + 0] = ring*(prec + 1) + i + 1;
+			indices[((ring*prec + i) * 2) * 3 + 2] = ring * (prec + 1) + i + 1;
+			indices[((ring*prec + i) * 2 + 1) * 3 + 0] = ring * (prec + 1) + i + 1;
 			indices[((ring*prec + i) * 2 + 1) * 3 + 1] = (ring + 1)*(prec + 1) + i;
 			indices[((ring*prec + i) * 2 + 1) * 3 + 2] = (ring + 1)*(prec + 1) + i + 1;
 		}
 	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 }
 int Torus::getNumVertices() { return numVertices; }
 int Torus::getNumIndices() { return numIndices; }

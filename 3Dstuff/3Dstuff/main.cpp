@@ -29,7 +29,7 @@ int width, height;
 float aspect;
 glm::mat4 pMat, vMat, mMat, mvMat;
 
-Torus myTorus(0.5f, 0.2f, 48);
+Torus myTorus(0.5f, 0.2f, 8);
 
 void setupVertices(void) {
 	std::vector<int> ind = myTorus.getIndices();
@@ -79,6 +79,7 @@ void init(GLFWwindow* window) {
 
 	setupVertices();
 	brickTexture = Utils::loadTexture("brick1.jpg");
+	glEnable(GL_DEPTH_TEST);
 }
 
 void display(GLFWwindow* window, double currentTime) {
@@ -91,7 +92,13 @@ void display(GLFWwindow* window, double currentTime) {
 	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
 	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
 
-	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ)); // changed to identity
+	vMat = glm::mat4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	);
 	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(torLocX, torLocY, torLocZ));
 	//mMat *= glm::eulerAngleXYZ(toRadians(30.0f), 0.0f, 0.0f);
 	mMat = glm::rotate(mMat, toRadians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -122,7 +129,13 @@ void display(GLFWwindow* window, double currentTime) {
 void window_size_callback(GLFWwindow* win, int newWidth, int newHeight) {
 	aspect = (float)newWidth / (float)newHeight;
 	glViewport(0, 0, newWidth, newHeight);
-	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+	//pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f); //dont use duno why. Was told so.
+	pMat = glm::mat4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, -1, 0,
+		0, 0, 0, 1
+	);
 }
 
 int main(void) {
