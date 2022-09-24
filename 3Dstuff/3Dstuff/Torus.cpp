@@ -27,7 +27,7 @@ Torus::Torus(float in, float out, int precIn) {
 
 float Torus::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
-/*void Torus::init() {
+void Torus::init() {
 	numVertices = (prec + 1) * (prec + 1);
 	numIndices = prec * prec * 6;
 	for (int i = 0; i < numVertices; i++) { vertices.push_back(glm::vec3()); }
@@ -85,8 +85,8 @@ float Torus::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360
 			indices[((ring*prec + i) * 2 + 1) * 3 + 2] = (ring + 1)*(prec + 1) + i + 1;
 		}
 	}
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-}*/
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//seen to not be needed
+}
 int Torus::getNumVertices() { return numVertices; }
 int Torus::getNumIndices() { return numIndices; }
 std::vector<int> Torus::getIndices() { return indices; }
