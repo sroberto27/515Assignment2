@@ -15,7 +15,7 @@ private:
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec3> sTangents;
 	std::vector<glm::vec3> tTangents;
-	void init();
+	void init(int cx, int cy,int px, int py);
 	float toRadians(float degrees);
 
 public:

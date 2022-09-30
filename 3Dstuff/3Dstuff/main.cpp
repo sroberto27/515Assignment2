@@ -29,7 +29,7 @@ int width, height;
 float aspect;
 glm::mat4 pMat, vMat, mMat, mvMat;
 
-Torus myTorus(0.5f, 0.2f, 48);
+Torus myTorus(0.4f, 0.2f, 12);
 
 void setupVertices(void) {
 	std::vector<int> ind = myTorus.getIndices();
@@ -75,11 +75,17 @@ void init(GLFWwindow* window) {
 
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
-	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
-
+	//pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+	pMat = glm::mat4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, -1, 0,
+		0, 0, 0, 1
+	);
 	setupVertices();
 	brickTexture = Utils::loadTexture("brick1.jpg");
 	glEnable(GL_DEPTH_TEST);
+	
 }
 
 void display(GLFWwindow* window, double currentTime) {
@@ -92,39 +98,48 @@ void display(GLFWwindow* window, double currentTime) {
 	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
 	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
 
-	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ)); // changed to identity
+	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, cameraZ*cameraZ*cameraZ)); // changed to identity
 	vMat = glm::mat4(
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1
 	);
-	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(torLocX, torLocY, torLocZ));
-	//mMat *= glm::eulerAngleXYZ(toRadians(30.0f), 0.0f, 0.0f);
-	mMat = glm::rotate(mMat, toRadians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	/*double tf;
+	for (int i = 0; i < 100; i++)
+	{
+		tf = currentTime + i;
+		mMat = glm::translate(glm::mat4(1.0f), glm::vec3(torLocX*tf, torLocY*tf, torLocZ*tf));
+		//mMat *= glm::eulerAngleXYZ(toRadians(30.0f), 0.0f, 0.0f);
+		mMat = glm::rotate(mMat, toRadians(30.0f*tf), glm::vec3(1.0f, 0.0f, 0.0f));*/
+		mMat = glm::translate(glm::mat4(1.0f), glm::vec3(torLocX, torLocY, torLocZ));
+		//mMat *= glm::eulerAngleXYZ(toRadians(30.0f), 0.0f, 0.0f);
+		mMat = glm::rotate(mMat, toRadians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		mvMat = vMat * mMat;
 
-	mvMat = vMat * mMat;
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
 
-	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
-	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
+		glActiveTexture(GL_TEXTURE0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//The wrapping function should go here not in init torus
+		glBindTexture(GL_TEXTURE_2D, brickTexture);
 
-	glActiveTexture(GL_TEXTURE0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//The wrapping function should go here not in init torus
-	glBindTexture(GL_TEXTURE_2D, brickTexture);
-
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CCW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
-	glDrawElements(GL_TRIANGLES, myTorus.getIndices().size(), GL_UNSIGNED_INT, 0);
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		glPrimitiveRestartIndex(0xFFFF);//
+		//glEnable(GL_PRIMITIVE_RESTART);//ADDED BUT DOES NOT WORK
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
+		//glDrawElements(GL_TRIANGLE_STRIP, myTorus.getIndices().size(), GL_UNSIGNED_INT, 0);// TRIANGLE_STRIP ADDED, DOESNOT WORK
+		glDrawElements(GL_TRIANGLES, myTorus.getIndices().size(), GL_UNSIGNED_INT, 0);
+	//}
 }
 
 void window_size_callback(GLFWwindow* win, int newWidth, int newHeight) {
@@ -143,7 +158,7 @@ int main(void) {
 	if (!glfwInit()) { exit(EXIT_FAILURE); }
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	GLFWwindow* window = glfwCreateWindow(800, 800, "Chapter6 - program2", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1500, 1000, "Chapter6 - program2", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }
 	glfwSwapInterval(1);
