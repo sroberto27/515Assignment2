@@ -1,7 +1,8 @@
+#pragma once
 #include <cmath>
 #include <vector>
 #include <glm\glm.hpp>
-class Torus
+class Arrow
 {
 private:
 	int numVertices;
@@ -15,13 +16,12 @@ private:
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec3> sTangents;
 	std::vector<glm::vec3> tTangents;
-	void init(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy);
-	void initArrow(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy);
+	void initArrow(float initx, float inity, float x1, float y1, float x2, float y2, float endx, float endy);
 	float toRadians(float degrees);
 
 public:
-	Torus();
-	Torus(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy);
+	Arrow();
+	Arrow(float initx, float inity, float x1, float y1, float x2, float y2, float endx, float endy);
 	int getNumVertices();
 	int getNumIndices();
 	std::vector<int> getIndices();

@@ -26,11 +26,13 @@
     <None Include="vertShader.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Arrow.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Torus.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Arrow.h" />
     <ClInclude Include="Torus.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>

@@ -9,41 +9,37 @@
 #include <cmath>
 #include <vector>
 #include <random>
-#include "Torus.h"
+#include "Arrow.h"
 using namespace std;
 
 
-std::random_device rd;
-std::mt19937 gen(rd());
 
-int random(int low, int high)
-{
-	std::uniform_int_distribution<> dist(low, high);
-	return dist(gen);
-}
 
-Torus::Torus() {
+
+
+Arrow::Arrow() {
 	prec = 48;
 	inner = 0.5f;
 	outer = 0.2f;
-	init(0,0, 0, 0,0,0,0,0);
+	initArrow(0, 0, 0, 0, 0, 0, 0, 0);
 }
 
-Torus::Torus(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy) {
-	init( initx,  inity,  x1,  y1,  x2,  y2,  endx,  endy);
+Arrow::Arrow(float initx, float inity, float x1, float y1, float x2, float y2, float endx, float endy) {
+	
+	initArrow(initx, inity, x1, y1, x2, y2, endx, endy);
 }
 
-float Torus::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
+float Arrow::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
-void swap(float* xp, float* yp)
+void swapArrow(float* xp, float* yp)
 {
-	double temp = *xp;
+	float temp = *xp;
 	*xp = *yp;
 	*yp = temp;
 }
 
 // A function to implement array sort
-void arraySort(float arrX[], float arrY[], int n, bool t)
+void arraySortArrow(float arrX[], float arrY[], int n, bool t)
 {
 	int i, j;
 	for (i = 0; i < n - 1; i++)
@@ -51,15 +47,15 @@ void arraySort(float arrX[], float arrY[], int n, bool t)
 			if (t)
 			{
 				if (arrX[j] > arrX[j + 1]) {
-					swap(&arrY[j], &arrY[j + 1]);
-					swap(&arrX[j], &arrX[j + 1]);
+					swapArrow(&arrY[j], &arrY[j + 1]);
+					swapArrow(&arrX[j], &arrX[j + 1]);
 				}
 			}
 			else
 			{
 				if (arrX[j] < arrX[j + 1]) {
-					swap(&arrY[j], &arrY[j + 1]);
-					swap(&arrX[j], &arrX[j + 1]);
+					swapArrow(&arrY[j], &arrY[j + 1]);
+					swapArrow(&arrX[j], &arrX[j + 1]);
 				}
 			}
 	for (int i = 0; i < 4; i++)
@@ -67,21 +63,22 @@ void arraySort(float arrX[], float arrY[], int n, bool t)
 		cout << "Y A : " << arrY[i] << endl;
 		cout << "X A: " << arrX[i] << endl;
 	}
-	
+
 
 
 }
-void Torus::init(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy) {
+
+void Arrow::initArrow(float initx, float inity, float x1, float y1, float x2, float y2, float endx, float endy) {
 	float x[4], y[4];
 
-		x[0] = initx; x[1] = x1; x[2] = x2; x[3] = endx;//fixed points for testing
-		y[0] = inity; y[1] = y1; y[2] = y2; y[3] = endy;
+	x[0] = initx; x[1] = x1; x[2] = x2; x[3] = endx;//fixed points for testing
+	y[0] = inity; y[1] = y1; y[2] = y2; y[3] = endy;
 
-		arraySort(x, y,4, true);
+	//arraySort(x, y, 4, true);//no for this
 
 	//x[0] = -20; x[1] = 10; x[2] = 15; x[3] = 69;//fixed points for testing
 	//y[0] = 0; y[1] = 10; y[2] = 85; y[3] = 1;
-	prec = x[3] - x[0];
+	prec = (int)(x[3] - x[0]);
 	/*x[0] = 0;  x[3] = 69;//fixed points for testing
 	y[0] = random(-60,60);  y[3] = 0;
 
@@ -99,13 +96,13 @@ void Torus::init(int initx, int inity, int x1, int y1, int x2, int y2, int endx,
 	for (int i = 0; i < numIndices; i++) { indices.push_back(0); }
 
 	// calculate first ring
-	float xt=0;
-	float yt=0;
+	float xt = 0;
+	float yt = 0;
 	double t = 0;
-	int testloop=0;
+	int testloop = 0;
 	int div = vertices.size();
 	int checkPoint = div;
-	int current = 0; 
+	int current = 0;
 	int next = 1;
 	//for (int i = 0; i < 4; i++, t+=0.01) {
 	for (int i = 0; i < prec; i++) {
@@ -115,7 +112,7 @@ void Torus::init(int initx, int inity, int x1, int y1, int x2, int y2, int endx,
 			current++; next++;
 			checkPoint = checkPoint + div;
 		}
-		float amt = toRadians(i*360.0f / prec);
+		float amt = 1; //toRadians(i*360.0f / prec);
 		//xt = pow(1 - t, 3)*x[0] + 3 * t*pow(1 - t, 2)*x[1] + 3 * pow(t, 2)*(1 - t)*x[2] + pow(t, 3)*x[3];
 		//yt = pow(1 - t, 3)*y[0] + 3 * t*pow(1 - t, 2)*y[1] + 3 * pow(t, 2)*(1 - t)*y[2] + pow(t, 3)*y[3];
 		//xt = pow(1 - t, 2)*x[0] + 2 * t*(1 - t)*x[1] + pow(t, 2)*x[2];
@@ -127,14 +124,15 @@ void Torus::init(int initx, int inity, int x1, int y1, int x2, int y2, int endx,
 		//cout << " xt; " << xt << " yt: " << yt << endl;
 
 		//curve easy ??
-		xt += ((x[next]-x[current])/div);
-		if (y[next]<y[current])
+		xt += ((x[next] - x[current]) / div);
+		if (checkPoint > div)
 		{
 			yt += ((y[next] - y[current]) / div);
+
 		}
 		else
 		{
-			yt -= ((y[next] - y[current]) / div);
+			yt = y[current];
 		}
 
 		glm::mat4 rMat = glm::rotate(glm::mat4(1.0f), amt, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -151,11 +149,11 @@ void Torus::init(int initx, int inity, int x1, int y1, int x2, int y2, int endx,
 		//glm::vec3 initPos(rMat * glm::vec4( 0.0f, 0.0f, outer, 1.0f));
 		//vertices[i] = glm::vec3(initPos + glm::vec3( 0, 0,inner));
 
-		cout << "vertexs " << vertices[i].x <<" , "<< vertices[i].y << " , "<<vertices[i].z <<endl;
+		cout << "vertexs " << vertices[i].x << " , " << vertices[i].y << " , " << vertices[i].z << endl;
 		texCoords[i] = glm::vec2(0.0f, ((float)i / (float)prec));
 
 		rMat = glm::rotate(glm::mat4(1.0f), amt, glm::vec3(0.0f, 1.0f, 0.0f));
-		tTangents[i] = glm::vec3(rMat * glm::vec4(-1.0f,0.0f, 0.0f, 1.0f));
+		tTangents[i] = glm::vec3(rMat * glm::vec4(-1.0f, 0.0f, 0.0f, 1.0f));
 
 		sTangents[i] = glm::vec3(glm::vec3(0.0f, -1.0f, 0.0f));
 		normals[i] = glm::cross(tTangents[i], sTangents[i]);
@@ -197,13 +195,11 @@ void Torus::init(int initx, int inity, int x1, int y1, int x2, int y2, int endx,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//seen to not be needed
 
 }
-
-
-int Torus::getNumVertices() { return numVertices; }
-int Torus::getNumIndices() { return numIndices; }
-std::vector<int> Torus::getIndices() { return indices; }
-std::vector<glm::vec3> Torus::getVertices() { return vertices; }
-std::vector<glm::vec2> Torus::getTexCoords() { return texCoords; }
-std::vector<glm::vec3> Torus::getNormals() { return normals; }
-std::vector<glm::vec3> Torus::getStangents() { return sTangents; }
-std::vector<glm::vec3> Torus::getTtangents() { return tTangents; }
+int Arrow::getNumVertices() { return numVertices; }
+int Arrow::getNumIndices() { return numIndices; }
+std::vector<int> Arrow::getIndices() { return indices; }
+std::vector<glm::vec3> Arrow::getVertices() { return vertices; }
+std::vector<glm::vec2> Arrow::getTexCoords() { return texCoords; }
+std::vector<glm::vec3> Arrow::getNormals() { return normals; }
+std::vector<glm::vec3> Arrow::getStangents() { return sTangents; }
+std::vector<glm::vec3> Arrow::getTtangents() { return tTangents; }
