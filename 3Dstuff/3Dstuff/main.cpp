@@ -51,15 +51,15 @@ GLuint brickTexture;
 float rotAmt = 0.0f;
 
 // variable allocation for display
-GLuint mvLoc, projLoc;
+GLuint mvLoc, projLoc,mLoc;
 int width, height;
 float aspect;
-glm::mat4 pMat, vMat, mMat, mvMat;
+glm::mat4 pMat, vMat, mMat, mvMat, M;
 glm::mat4 temp;
 float Ax, Ay, Az;
 //x[0] = -20; x[1] = 10; x[2] = 15; x[3] = 69;//fixed points for testing
 	//y[0] = 0; y[1] = 10; y[2] = 85; y[3] = 1;
-Torus myTorus(-20,0,10,10,15,41,69,40);
+Torus myTorus(0,60,25,50,65,40,95,30,48);
 Arrow myArrow(0, 1, 10, 1, 15, 1, 70, 1);
 glm::mat4 buildTranslate(float x, float y,float z) {
 	glm::mat4 r = glm::mat4(
@@ -74,25 +74,25 @@ glm::mat4 buildTranslate(float x, float y,float z) {
 glm::mat4 rotateX(float rad) {
 	glm::mat4 r = glm::mat4(
 		1, 0, 0, 0,
-		0, cos(rad), -sin(rad), 0,
-		0, sin(rad), cos(rad), 0,
+		0, cos(rad), sin(rad), 0,
+		0, -sin(rad), cos(rad), 0,
 		0, 0, 0, 1
 	);
 	return r;
 }
 glm::mat4 rotateY(float rad) {
 	glm::mat4 r = glm::mat4(
-		cos(rad), 0, sin(rad), 0,
+		cos(rad), 0, -sin(rad), 0,
 		0, 1, 0, 0,
-		-sin(rad), 0, cos(rad), 0,
+		sin(rad), 0, cos(rad), 0,
 		0, 0, 0, 1
 	);
 	return r;
 }
 glm::mat4 rotateZ(float rad) {
 	glm::mat4 r = glm::mat4(
-		cos(rad), -sin(rad), 0, 0,
-		sin(rad), cos(rad), 0, 0,
+		cos(rad), sin(rad), 0, 0,
+		-sin(rad), cos(rad), 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1
 	);
@@ -204,10 +204,23 @@ void init(GLFWwindow* window) {
 		0, 0, 1, 0,
 		0, 0, 0, 1
 	);
+	mMat = glm::mat4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	);
+	M = glm::mat4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	);
 	setupVertices();
 	brickTexture = Utils::loadTexture("brick1.jpg");
 	glEnable(GL_PRIMITIVE_RESTART);
 	glEnable(GL_DEPTH_TEST);
+	//glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
 	
 }
 
@@ -217,7 +230,7 @@ void display(GLFWwindow* window, double currentTime,float xTr, float yTr, float 
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(renderingProgram);
-
+	mLoc = glGetUniformLocation(renderingProgram, "m_matrix");
 	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
 	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
 
@@ -232,7 +245,7 @@ void display(GLFWwindow* window, double currentTime,float xTr, float yTr, float 
 		//mMat = glm::translate(glm::mat4(1.0f), glm::vec3(xTr, yTr, zTr));
 		//mMat *= glm::eulerAngleXYZ(toRadians(30.0f), 0.0f, 0.0f);
 		//mvMat = temp;
-
+		glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(M));
 		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
 
@@ -257,9 +270,9 @@ void display(GLFWwindow* window, double currentTime,float xTr, float yTr, float 
 		glDrawElements(GL_TRIANGLE_STRIP, myTorus.getIndices().size(), GL_UNSIGNED_INT, 0);
 	//}
 
-
-		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+		//glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(M));
+		//glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+		//glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo2[0]);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -278,7 +291,9 @@ void display(GLFWwindow* window, double currentTime,float xTr, float yTr, float 
 		glPrimitiveRestartIndex(0xFFFF);//
 		glEnable(GL_PRIMITIVE_RESTART);//
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo2[3]);
-		glDrawElements(GL_TRIANGLE_STRIP, myArrow.getIndices().size(), GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLE_STRIP, myArrow.getIndices().size(), GL_UNSIGNED_INT, 0);
+
+		// connne
 
 }
 
@@ -294,9 +309,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		cout << "UP" << endl;
 		Ay -= AngleIncrement;
 		//mMat = mMat + buildTranslate(0, Ay, 0);
-		mMat = mMat * rotateX(toRadians(Ay));
+		M =  M *rotateY(toRadians(Ay));
 		//mvMat = mMat * vMat;
-		mvMat = mMat;
+		mMat = M;
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 
 		
@@ -305,27 +321,30 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		cout << "Down" << endl;
 		Ay += AngleIncrement;
 		//mMat = mMat + buildTranslate(0, Ay, 0);
-		mMat =mMat* rotateX(toRadians(Ay)) ;
+		M = M * rotateY(toRadians(Ay)) ;
 		//mvMat = mMat * vMat;
-		mvMat = mMat;
+		mMat = M;
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 	}
 	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
 		cout << "lefy" << endl;
-		Ax -= AngleIncrement;
+		Az -= AngleIncrement;
 		//mMat = mMat + buildTranslate(Ax, 0, 0);
-		mMat = rotateY(toRadians(Ax)) * mvMat;
+		M = rotateZ(toRadians(Az)) * M ;
 		//mvMat = mMat * vMat;
-		mvMat = mMat;
+		mMat = M;
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 	}
 	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
 		cout << "righfy" << endl;
-		Ax += AngleIncrement;
+		Az += AngleIncrement;
 		//mMat = mMat + buildTranslate(Ax, 0, 0);
-		mMat = rotateY(toRadians(Ax))*mvMat;
+		M = rotateZ(toRadians(Az))* M ;
 		//mvMat = mMat * vMat;
-		mvMat = mMat;
+		mMat = M;
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 	}
 
@@ -333,9 +352,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		cout << "Z right --" << endl;
 		Az -= AngleIncrement;
 		//mMat = mMat + buildTranslate(0, 0, Az);
-		mMat = mMat * rotateZ(toRadians(Az));
+		M =  M  * rotateZ(toRadians(Az));
 		//mvMat = mMat * vMat;
-		mvMat = mMat;
+		mMat = M;
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 
 
@@ -344,47 +364,70 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		cout << "z right ++" << endl;
 		Az += AngleIncrement;
 		//mMat = mMat + buildTranslate(0, 0, Az);
-		mMat = mMat * rotateZ(toRadians(Az));
+		M =  M  * rotateZ(toRadians(Az));
 		//mvMat = mMat * vMat;
-		mvMat = mMat;
+		mMat = M;
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 	}
 	if (key == GLFW_KEY_A && action == GLFW_PRESS) {
 		cout << "Z left --" << endl;
-		Az -= AngleIncrement;
 		//mMat = mMat + buildTranslate(0, 0, Az);
-		mMat = rotateZ(toRadians(Az))*mMat ;
+		M = buildTranslate( -0.1,0,0)* M ;
 		//mvMat = mMat * vMat;
-		mvMat = mMat;
+		//vMat = buildTranslate(10, 0, 0) * vMat;
+		mMat = M;
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 
 
 	}
 	if (key == GLFW_KEY_S && action == GLFW_PRESS) {
 		cout << "Z left ++" << endl;
-		Az += AngleIncrement;
 		//mMat = mMat + buildTranslate(0, 0, Az);
-		mMat = rotateZ(toRadians(Az))*mMat;
+		M = buildTranslate( 0.1, 0, 0)* M ;// not working either
 		//mvMat = mMat * vMat;
-		mvMat = mMat;
+		//vMat = buildTranslate(-10, 0, 0)*vMat;
+		mMat = M;
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 	}
 	if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
 		cout << "X left --" << endl;
-		Az -= AngleIncrement;
 		//mMat = mMat + buildTranslate(0, 0, Ax);
-		mMat = rotateY(toRadians(Ax))*mMat;
-		mvMat = mMat ;
+		M =  M *(buildTranslate( -0.1, 0, 0));//nop working
+		mMat = M ;
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 
 
 	}
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
 		cout << "X left ++" << endl;
-		Az += AngleIncrement;
 		//mMat = mMat + buildTranslate(0, 0, Ax);
-		mMat = rotateY(toRadians(Ax))*mMat;
-		mvMat = mMat ;
+		M =   M *(buildTranslate( 0.1, 0, 0));
+		mMat = M ;
+		mvMat = mMat * vMat;
+		//mvMat += mvMat;
+	}
+	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+		Ax += AngleIncrement;
+		cout << "X left --" << endl;
+		//mMat = mMat + buildTranslate(0, 0, Ax);
+		vMat = vMat * rotateX(toRadians(Ax));//nop working
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+		mvMat = mMat * vMat;
+		//mvMat += mvMat;
+
+
+	}
+	if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+		Ax -= AngleIncrement;
+		cout << "X left ++" << endl;
+		//mMat = mMat + buildTranslate(0, 0, Ax);
+		vMat = vMat * rotateX(toRadians(Ax));;//nop working
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+		mvMat = mMat * vMat;
 		//mvMat += mvMat;
 	}
 		
@@ -464,10 +507,13 @@ int main(void) {
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
 	init(window);
-	mMat = rotateY(toRadians(0));
-	mvMat = mMat * vMat;
+	//mMat = rotateY(toRadians(0));
+//	mvMat = mMat * vMat;
+	//M = mvMat;
 	display(window, glfwGetTime(), 0, 0, 0, temp);
 	while (!glfwWindowShouldClose(window)) {
+		//mMat = rotateY(toRadians(0));
+		mvMat = mMat * vMat;
 		glfwSwapBuffers(window);
 		display(window, glfwGetTime(), Ax, Ay, Az, temp);
 		glfwSetKeyCallback(window, key_callback);

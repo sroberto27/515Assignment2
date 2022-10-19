@@ -33,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Arrow.h" />
+    <ClInclude Include="main.h" />
     <ClInclude Include="Torus.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>

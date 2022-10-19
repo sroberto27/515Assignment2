@@ -7,6 +7,7 @@ private:
 	int numVertices;
 	int numIndices;
 	int prec;
+	int precRing;
 	float inner;
 	float outer;
 	std::vector<int> indices;
@@ -15,13 +16,13 @@ private:
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec3> sTangents;
 	std::vector<glm::vec3> tTangents;
-	void init(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy);
-	void initArrow(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy);
+	void init(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy, int precRing);
+	void initArrow(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy, int precRing);
 	float toRadians(float degrees);
 
 public:
 	Torus();
-	Torus(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy);
+	Torus(int initx, int inity, int x1, int y1, int x2, int y2, int endx, int endy, int precRing);
 	int getNumVertices();
 	int getNumIndices();
 	std::vector<int> getIndices();
