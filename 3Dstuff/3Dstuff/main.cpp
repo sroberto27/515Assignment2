@@ -40,7 +40,7 @@ float toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
 #define numVAOs 1
 #define numVBOs 4
-float AngleIncrement = 10.0f;
+float AngleIncrement = 1.0f;
 float cameraX, cameraY, cameraZ;
 float torLocX, torLocY, torLocZ;
 GLuint renderingProgram;
@@ -48,19 +48,23 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 GLuint vbo2[numVBOs];
 GLuint brickTexture;
+GLuint arrowTexture;
 float rotAmt = 0.0f;
+bool inicia = true;
 
 // variable allocation for display
 GLuint mvLoc, projLoc,mLoc;
+GLuint mvALoc, projALoc, mALoc;
 int width, height;
 float aspect;
 glm::mat4 pMat, vMat, mMat, mvMat, M;
+glm::mat4  MA,MA1,MA2;
 glm::mat4 temp;
 float Ax, Ay, Az;
 //x[0] = -20; x[1] = 10; x[2] = 15; x[3] = 69;//fixed points for testing
 	//y[0] = 0; y[1] = 10; y[2] = 85; y[3] = 1;
 Torus myTorus(0,60,25,50,65,40,95,30,48);
-Arrow myArrow(0, 1, 10, 1, 15, 1, 70, 1);
+Arrow myArrow(10, 1, 30, 30, 10, 1, 160, 1);
 glm::mat4 buildTranslate(float x, float y,float z) {
 	glm::mat4 r = glm::mat4(
 		1, 0, 0, 0,
@@ -167,7 +171,7 @@ void setupVertices(void) {
 	glGenVertexArrays(1, vao);
 	glBindVertexArray(vao[0]);
 	glGenBuffers(numVBOs, vbo2);
-
+	
 	glBindBuffer(GL_ARRAY_BUFFER, vbo2[0]);
 	glBufferData(GL_ARRAY_BUFFER, pAvalues.size() * 4, &pAvalues[0], GL_STATIC_DRAW);
 
@@ -180,6 +184,7 @@ void setupVertices(void) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo2[3]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indA.size() * 4, &indA[0], GL_STATIC_DRAW);
 
+	
 
 }
 
@@ -216,14 +221,76 @@ void init(GLFWwindow* window) {
 		0, 0, 1, 0,
 		0, 0, 0, 1
 	);
+	MA =MA1=MA2= glm::mat4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	);
+	MA = buildTranslate(0.4, 0, 0)*MA;
+	MA = MA * rotateZ(toRadians(125));
+	MA1 = buildTranslate(-0.04, 0.4, 0)*MA1;
+	MA1 = MA1 * rotateZ(toRadians(215));
+	MA2 = buildTranslate(-0.2, -0.4, 0)*MA2;
+	//MA2 = MA2 * rotateZ(toRadians(125));
+	//MA2 = MA2 * rotateY(toRadians(45));
 	setupVertices();
 	brickTexture = Utils::loadTexture("brick1.jpg");
+	arrowTexture = Utils::loadTexture("brick2.jpg");
 	glEnable(GL_PRIMITIVE_RESTART);
 	glEnable(GL_DEPTH_TEST);
 	//glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
 	
 }
+void displayArrow(GLFWwindow* window, double currentTime, float xTr, float yTr, float zTr, glm::mat4 &temp) {
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	
+	mLoc = glGetUniformLocation(renderingProgram, "m_matrix");
+	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
+	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
 
+	//arrow X
+	MA = buildTranslate(0.4, 0, 0)*MA;
+	MA = MA * rotateZ(toRadians(125));
+	mMat = MA;
+	mvMat = mMat * vMat;
+	glUseProgram(renderingProgram);
+	glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(MA));
+	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2[1]);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	glActiveTexture(GL_TEXTURE0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//The wrapping function should go here not in init torus
+	glBindTexture(GL_TEXTURE_2D, arrowTexture);
+
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+	glPrimitiveRestartIndex(0xFFFF);//
+	glEnable(GL_PRIMITIVE_RESTART);//
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo2[3]);
+	glDrawElements(GL_TRIANGLE_STRIP, myArrow.getIndices().size(), GL_UNSIGNED_INT, 0);
+
+
+	mvMat = mMat = vMat = M= glm::mat4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	);
+	// connne
+
+}
 void display(GLFWwindow* window, double currentTime,float xTr, float yTr, float zTr, glm::mat4 &temp) {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -233,6 +300,8 @@ void display(GLFWwindow* window, double currentTime,float xTr, float yTr, float 
 	mLoc = glGetUniformLocation(renderingProgram, "m_matrix");
 	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
 	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
+	//mvALoc = glGetUniformLocation(renderingProgram, "mv_matrix");
+	//projALoc = glGetUniformLocation(renderingProgram, "proj_matrix");
 
 	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, cameraZ*cameraZ*cameraZ)); // changed to identity
 	/*double tf;
@@ -245,6 +314,9 @@ void display(GLFWwindow* window, double currentTime,float xTr, float yTr, float 
 		//mMat = glm::translate(glm::mat4(1.0f), glm::vec3(xTr, yTr, zTr));
 		//mMat *= glm::eulerAngleXYZ(toRadians(30.0f), 0.0f, 0.0f);
 		//mvMat = temp;
+	mMat = M;
+	mvMat = mMat * vMat;
+
 		glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(M));
 		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
@@ -269,10 +341,46 @@ void display(GLFWwindow* window, double currentTime,float xTr, float yTr, float 
 		//glDrawElements(GL_TRIANGLE_STRIP, myTorus.getIndices().size(), GL_UNSIGNED_INT, 0);// TRIANGLE_STRIP ADDED, DOESNOT WORK
 		glDrawElements(GL_TRIANGLE_STRIP, myTorus.getIndices().size(), GL_UNSIGNED_INT, 0);
 	//}
+		
+			
+			mMat = MA;
+			mvMat = mMat * vMat;
+			
 
-		//glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(M));
-		//glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
-		//glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+	
+		
+		glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(MA));
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+		
+		glBindBuffer(GL_ARRAY_BUFFER, vbo2[0]);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo2[1]);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//The wrapping function should go here not in init torus
+		glBindTexture(GL_TEXTURE_2D, arrowTexture);
+
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		glPrimitiveRestartIndex(0xFFFF);//
+		glEnable(GL_PRIMITIVE_RESTART);//
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo2[3]);
+		glDrawElements(GL_TRIANGLE_STRIP, myArrow.getIndices().size(), GL_UNSIGNED_INT, 0);
+
+		mMat = MA1;
+		mvMat = mMat * vMat;
+
+
+
+
+		glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(MA1));
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo2[0]);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -284,14 +392,44 @@ void display(GLFWwindow* window, double currentTime,float xTr, float yTr, float 
 
 		glActiveTexture(GL_TEXTURE0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//The wrapping function should go here not in init torus
-		glBindTexture(GL_TEXTURE_2D, brickTexture);
+		glBindTexture(GL_TEXTURE_2D, arrowTexture);
 
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		glPrimitiveRestartIndex(0xFFFF);//
 		glEnable(GL_PRIMITIVE_RESTART);//
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo2[3]);
-		//glDrawElements(GL_TRIANGLE_STRIP, myArrow.getIndices().size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLE_STRIP, myArrow.getIndices().size(), GL_UNSIGNED_INT, 0);
+
+		mMat = MA2;
+		mvMat = mMat * vMat;
+
+
+
+
+		glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(MA2));
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo2[0]);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo2[1]);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//The wrapping function should go here not in init torus
+		glBindTexture(GL_TEXTURE_2D, arrowTexture);
+
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		glPrimitiveRestartIndex(0xFFFF);//
+		glEnable(GL_PRIMITIVE_RESTART);//
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo2[3]);
+		glDrawElements(GL_TRIANGLE_STRIP, myArrow.getIndices().size(), GL_UNSIGNED_INT, 0);
+
 
 		// connne
 
@@ -510,7 +648,11 @@ int main(void) {
 	//mMat = rotateY(toRadians(0));
 //	mvMat = mMat * vMat;
 	//M = mvMat;
-	display(window, glfwGetTime(), 0, 0, 0, temp);
+	//displayArrow(window, glfwGetTime(), 0, 0, 0, temp);
+
+	mMat = M;
+	mvMat = mMat * vMat;
+	display(window, glfwGetTime(), Ax, Ay, Az, temp);
 	while (!glfwWindowShouldClose(window)) {
 		//mMat = rotateY(toRadians(0));
 		mvMat = mMat * vMat;

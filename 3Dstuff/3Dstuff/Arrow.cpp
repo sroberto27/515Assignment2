@@ -112,7 +112,7 @@ void Arrow::initArrow(float initx, float inity, float x1, float y1, float x2, fl
 			current++; next++;
 			checkPoint = checkPoint + div;
 		}
-		float amt = 1; //toRadians(i*360.0f / prec);
+		float amt = 1;// toRadians(i*360.0f / prec);
 		//xt = pow(1 - t, 3)*x[0] + 3 * t*pow(1 - t, 2)*x[1] + 3 * pow(t, 2)*(1 - t)*x[2] + pow(t, 3)*x[3];
 		//yt = pow(1 - t, 3)*y[0] + 3 * t*pow(1 - t, 2)*y[1] + 3 * pow(t, 2)*(1 - t)*y[2] + pow(t, 3)*y[3];
 		//xt = pow(1 - t, 2)*x[0] + 2 * t*(1 - t)*x[1] + pow(t, 2)*x[2];
@@ -161,7 +161,7 @@ void Arrow::initArrow(float initx, float inity, float x1, float y1, float x2, fl
 	// rotate the first ring about Y to get the other rings
 	for (int ring = 1; ring < prec + 1; ring++) {
 		for (int i = 0; i < prec + 1; i++) {
-			float amt = (float)toRadians((float)ring * 360.0f / (prec));
+			float amt = 1;//(float)toRadians((float)ring * 360.0f / (prec));
 
 			glm::mat4 rMat = glm::rotate(glm::mat4(1.0f), amt, glm::vec3(1.0f, 0.0f, 0.0f));
 			//vertices[0] = glm::vec3(inner + outer + 0.01, 0.0f, 0.0f);

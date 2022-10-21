@@ -323,7 +323,7 @@ void Torus::init(int initx, int inity, int x1, int y1, int x2, int y2, int endx,
 			indices[((ring*prec + i) * 2) * 3 + 0] = ring * (prec + 1) + i;
 			indices[((ring*prec + i) * 2) * 3 + 1] = (ring + 1)*(prec + 1) + i;
 			indices[((ring*prec + i) * 2) * 3 + 2] = ring * (prec + 1) + i + 1;
-			indices[((ring*prec + i) * 2 + 1) * 3 + 0] = ring * (prec + 1) + i + 1;
+			indices[((ring*prec + i) * 2 + 1) * 3 + 0] = 0xFFFF;
 			indices[((ring*prec + i) * 2 + 1) * 3 + 1] = (ring + 1)*(prec + 1) + i;
 			indices[((ring*prec + i) * 2 + 1) * 3 + 2] = (ring + 1)*(prec + 1) + i + 1;
 
